@@ -21,13 +21,13 @@ void loop() {
   // for rotating at same time
   for (int angle = 0; angle <= 180; angle++) {
     pwm.setPWM(0, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
-    pwm.setPWM(7, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
+    pwm.setPWM(4, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
     delay(15); 
   }
 
   for (int angle = 180; angle >= 0; angle--) {
     pwm.setPWM(0, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
-    pwm.setPWM(7, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
+    pwm.setPWM(4, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
     delay(15); 
   }
 }

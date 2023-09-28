@@ -25,7 +25,7 @@ Adafruit_DCMotor *myMotorR = AFMS.getMotor(4);
 #define SERVOMIN  150
 #define SERVOMAX  600
 #define SERVO_FREQ 50
-#define SERVO_1   7
+#define SERVO_1   4
 #define SERVO_2   0
 
 void motorSetup(){
@@ -162,7 +162,7 @@ void setup() {
   // But might also fix some connection / re-connection issues.
   BP32.forgetBluetoothKeys();
 
-  motorSetup();
+  // motorSetup();
   servoSetup();
 
 }
@@ -183,26 +183,48 @@ void loop() {
 
       
       ////////////// Servo control /////////////////////////
-      int leftJoystickY = myGamepad->axisY();   // range from -511 - 512
-      int servoAngle;
-      // Neutral position (90 deg) when left joystick in middle
-      if (abs(leftJoystickY) < 100){
-        servoAngle = 90;
-        pwm.setPWM(SERVO_1, 0, (SERVOMAX - SERVOMIN) / 2);
-        pwm.setPWM(SERVO_2, 0, (SERVOMAX - SERVOMIN) / 2);
+      for (int angle = 0; angle <= 180; angle++) {
+        pwm.setPWM(0, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
+        pwm.setPWM(4, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
+        Serial.printf("Angle: %3d\n", angle);
+        delay(15); 
       }
-      // Pointing up (180 deg) when left joystick pushed up
-      else if (leftJoystickY >= 100){
-        servoAngle = 180;
-        pwm.setPWM(SERVO_1, 0, SERVOMAX);
-        pwm.setPWM(SERVO_2, 0, SERVOMIN);
+
+      for (int angle = 180; angle >= 0; angle--) {
+        pwm.setPWM(0, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
+        pwm.setPWM(4, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
+        Serial.printf("Angle: %3d\n", angle);
+        delay(15); 
       }
-      // Pointing down (0 deg) when left joystick pushed down
-      else if (leftJoystickY <= -100){
-        servoAngle = 0;
-        pwm.setPWM(SERVO_1, 0, SERVOMIN);
-        pwm.setPWM(SERVO_2, 0, SERVOMAX);
-      }
+
+      // int leftJoystickY = myGamepad->axisY();   // range from -511 - 512
+      // // Serial.printf("\n", leftJoystickY);
+      // int servoAngle;
+      // // Neutral position (90 deg) when left joystick in middle
+      // if (abs(leftJoystickY) <100){
+      //   servoAngle = 90;
+      //   pwm.setPWM(SERVO_1, 0, (SERVOMAX - SERVOMIN) / 2);
+      //   pwm.setPWM(SERVO_2, 0, (SERVOMAX - SERVOMIN) / 2);
+      // }
+      // // Pointing up (180 deg) when left joystick pushed up (-511 - 0)
+      // else if (leftJoystickY <= -100){
+      //   servoAngle = 180;
+      //   for (int angle = 0; angle <= 180; angle++) {
+      //     pwm.setPWM(0, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
+      //     pwm.setPWM(4, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
+      //     delay(1); 
+      //   }
+      // }
+      // // Pointing down (0 deg) when left joystick pushed down (0 - 512)
+      // else if (leftJoystickY >= 100){
+      //   servoAngle = 0;
+      //   for (int angle = 180; angle >= 0; angle--) {
+      //     pwm.setPWM(0, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
+      //     pwm.setPWM(4, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
+      //     delay(1); 
+      //   }
+      // }
+      // Serial.printf("left joystick: %4d, servoAngle: %3d\n", leftJoystickY, servoAngle);
       ////////////////////////////////////////////////////
 
       ///////////// DC Motor Thrust Direction ////////////
@@ -227,96 +249,22 @@ void loop() {
       /////////////////////////////////////////////////////
 
       ////////////// Throttle and Reverse control /////////////
-      // Both throttle and brake are pressed
-      if (myGamepad->throttle() > 10 && myGamepad->brake() > 10){
-        Serial.println("Please do not press both triggers!");
-      } 
-      else if (myGamepad->throttle() > 10){
-        // Throttle --> forward   (0 - 1023)
-        setThrustDir(leftDirection, rightDirection);
-        motorControl(myGamepad->throttle()); // isForward = 1
-      }
-      else if (myGamepad->brake() > 10){
-        // Brake --> backward     (0 - 1023)
-        // reverse the direction of thrust
-        setThrustDir(!leftDirection, !rightDirection);
-        motorControl(myGamepad->brake());    // isForward = 0
-      }
+      // // Both throttle and brake are pressed
+      // if (myGamepad->throttle() > 10 && myGamepad->brake() > 10){
+      //   Serial.println("Please do not press both triggers!");
+      // } 
+      // else if (myGamepad->throttle() > 10){
+      //   // Throttle --> forward   (0 - 1023)
+      //   setThrustDir(leftDirection, rightDirection);
+      //   motorControl(myGamepad->throttle()); // isForward = 1
+      // }
+      // else if (myGamepad->brake() > 10){
+      //   // Brake --> backward     (0 - 1023)
+      //   // reverse the direction of thrust
+      //   setThrustDir(!leftDirection, !rightDirection);
+      //   motorControl(myGamepad->brake());    // isForward = 0
+      // }
       /////////////////////////////////////////////////////////
-
-      // // There are different ways to query whether a button is pressed.
-      // // By query each button individually:
-      // //  a(), b(), x(), y(), l1(), etc...
-      // if (myGamepad->a()) {
-      //   static int colorIdx = 0;
-      //   // Some gamepads like DS4 and DualSense support changing the color LED.
-      //   // It is possible to change it by calling:
-      //   switch (colorIdx % 3) {
-      //   case 0:
-      //     // Red
-      //     myGamepad->setColorLED(255, 0, 0);
-      //     break;
-      //   case 1:
-      //     // Green
-      //     myGamepad->setColorLED(0, 255, 0);
-      //     break;
-      //   case 2:
-      //     // Blue
-      //     myGamepad->setColorLED(0, 0, 255);
-      //     break;
-      //   }
-      //   colorIdx++;
-      // }
-
-      // if (myGamepad->b()) {
-      //   // Turn on the 4 LED. Each bit represents one LED.
-      //   static int led = 0;
-      //   led++;
-      //   // Some gamepads like the DS3, DualSense, Nintendo Wii, Nintendo Switch
-      //   // support changing the "Player LEDs": those 4 LEDs that usually
-      //   // indicate the "gamepad seat". It is possible to change them by
-      //   // calling:
-      //   myGamepad->setPlayerLEDs(led & 0x0f);
-      // }
-
-      // if (myGamepad->x()) {
-      //   // Duration: 255 is ~2 seconds
-      //   // force: intensity
-      //   // Some gamepads like DS3, DS4, DualSense, Switch, Xbox One S support
-      //   // rumble.
-      //   // It is possible to set it by calling:
-      //   myGamepad->setRumble(0xc0 /* force */, 0xc0 /* duration */);
-      // }
-
-      // Another way to query the buttons, is by calling buttons(), or
-      // miscButtons() which return a bitmask.
-      // Some gamepads also have DPAD, axis and more.
-
-
-      // Serial.printf(
-      //     "idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: "
-      //     "%4d, %4d, brake: %4d, throttle: %4d, misc: 0x%02x, gyro x:%6d y:%6d "
-      //     "z:%6d, accel x:%6d y:%6d z:%6d\n",
-      //     i,                        // Gamepad Index
-      //     myGamepad->dpad(),        // DPAD
-      //     myGamepad->buttons(),     // bitmask of pressed buttons
-      //     myGamepad->axisX(),       // (-511 - 512) left X Axis
-      //     myGamepad->axisY(),       // (-511 - 512) left Y axis
-      //     myGamepad->axisRX(),      // (-511 - 512) right X axis
-      //     myGamepad->axisRY(),      // (-511 - 512) right Y axis
-      //     myGamepad->brake(),       // (0 - 1023): brake button
-      //     myGamepad->throttle(),    // (0 - 1023): throttle (AKA gas) button
-      //     myGamepad->miscButtons(), // bitmak of pressed "misc" buttons
-      //     myGamepad->gyroX(),       // Gyro X
-      //     myGamepad->gyroY(),       // Gyro Y
-      //     myGamepad->gyroZ(),       // Gyro Z
-      //     myGamepad->accelX(),      // Accelerometer X
-      //     myGamepad->accelY(),      // Accelerometer Y
-      //     myGamepad->accelZ()       // Accelerometer Z
-      // );
-
-      // You can query the axis and other properties as well. See Gamepad.h
-      // For all the available functions.
     }
   }
 
