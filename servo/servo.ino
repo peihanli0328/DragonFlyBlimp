@@ -19,9 +19,9 @@ void setup() {
   pwm.setPWMFreq(SERVO_FREQ);
   // pwm.setPWM(0, 0, map(90, 0, 180, SERVOMIN, SERVOMAX));
   // pwm.setPWM(4, 0, map(90, 180, 0, SERVOMIN, SERVOMAX));
-  pwm.setPWM(3, 0,satrting_servoAngle);
+  pwm.setPWM(0, 0,satrting_servoAngle);
   pwm.setPWM(4, 0,satrting_servoAngle);
-  delay(100);
+  // delay(100);
   Serial.println("2 channel Servo test!");
 
 }
@@ -40,6 +40,6 @@ void loop() {
   // pwm.setPWM(3, 0, servoAngle);
   pwm.setPWM(0, 0, map(servoAngle, 0, 180, SERVOMIN, SERVOMAX));
   pwm.setPWM(4, 0, map(servoAngle, 180, 0, SERVOMIN, SERVOMAX));
-  delay(10);
+  // delay(10);
   
 }

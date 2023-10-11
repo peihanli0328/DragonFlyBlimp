@@ -22,11 +22,15 @@ Adafruit_DCMotor *myMotorR = AFMS.getMotor(4);
 
 
 //////// Define const ////////////
-#define SERVOMIN  150
-#define SERVOMAX  600
+// #define SERVOMIN  150
+// #define SERVOMAX  600
+#define SERVOMIN  100
+#define SERVOMAX  450
 #define SERVO_FREQ 50
-#define SERVO_1   4
-#define SERVO_2   0
+#define SERVO_1   0
+#define SERVO_2   4
+
+int satrting_servoAngle = ((SERVOMAX-SERVOMIN)/2)+SERVOMIN; 
 
 void motorSetup(){
   Serial.println("Adafruit Motorshield v2 - DC Motor test!");
@@ -57,6 +61,8 @@ void servoSetup(){
   pwm.begin();
   pwm.setOscillatorFrequency(27000000);
   pwm.setPWMFreq(SERVO_FREQ);
+  pwm.setPWM(SERVO_1, 0,satrting_servoAngle);
+  pwm.setPWM(SERVO_2, 0,satrting_servoAngle);
   Serial.println("Servo setup completed!");
   delay(10);
 }
@@ -183,69 +189,60 @@ void loop() {
 
       
       ////////////// Servo control /////////////////////////
-      for (int angle = 0; angle <= 180; angle++) {
-        pwm.setPWM(0, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
-        pwm.setPWM(4, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
-        Serial.printf("Angle: %3d\n", angle);
-        delay(15); 
-      }
+      // for (int angle = 0; angle <= 180; angle++) {
+      //   pwm.setPWM(0, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
+      //   pwm.setPWM(4, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
+      //   Serial.printf("Angle: %3d\n", angle);
+      //   delay(15); 
+      // }
 
-      for (int angle = 180; angle >= 0; angle--) {
-        pwm.setPWM(0, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
-        pwm.setPWM(4, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
-        Serial.printf("Angle: %3d\n", angle);
-        delay(15); 
-      }
+      // for (int angle = 180; angle >= 0; angle--) {
+      //   pwm.setPWM(0, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
+      //   pwm.setPWM(4, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
+      //   Serial.printf("Angle: %3d\n", angle);
+      //   delay(15); 
+      // }
 
-      // int leftJoystickY = myGamepad->axisY();   // range from -511 - 512
-      // // Serial.printf("\n", leftJoystickY);
-      // int servoAngle;
-      // // Neutral position (90 deg) when left joystick in middle
-      // if (abs(leftJoystickY) <100){
-      //   servoAngle = 90;
-      //   pwm.setPWM(SERVO_1, 0, (SERVOMAX - SERVOMIN) / 2);
-      //   pwm.setPWM(SERVO_2, 0, (SERVOMAX - SERVOMIN) / 2);
-      // }
-      // // Pointing up (180 deg) when left joystick pushed up (-511 - 0)
-      // else if (leftJoystickY <= -100){
-      //   servoAngle = 180;
-      //   for (int angle = 0; angle <= 180; angle++) {
-      //     pwm.setPWM(0, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
-      //     pwm.setPWM(4, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
-      //     delay(1); 
-      //   }
-      // }
-      // // Pointing down (0 deg) when left joystick pushed down (0 - 512)
-      // else if (leftJoystickY >= 100){
-      //   servoAngle = 0;
-      //   for (int angle = 180; angle >= 0; angle--) {
-      //     pwm.setPWM(0, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
-      //     pwm.setPWM(4, 0, map(angle, 0, 180, SERVOMIN, SERVOMAX));
-      //     delay(1); 
-      //   }
-      // }
+      int leftJoystickY = myGamepad->axisY();   // range from -511 - 512
+      // Serial.printf("\n", leftJoystickY);
+      int servoAngle;
+      // Neutral position (90 deg) when left joystick in middle
+      if (abs(leftJoystickY) <100){
+        servoAngle = 90;
+      }
+      // Pointing up (180 deg) when left joystick pushed up (-511 - 0)
+      else if (leftJoystickY <= -100){
+        servoAngle = 180;
+      }
+      // Pointing down (0 deg) when left joystick pushed down (0 - 512)
+      else if (leftJoystickY >= 100){
+        servoAngle = 0;
+      }
+      pwm.setPWM(SERVO_1, 0, map(servoAngle, 0, 180, SERVOMIN, SERVOMAX));
+      pwm.setPWM(SERVO_2, 0, map(servoAngle, 180, 0, SERVOMIN, SERVOMAX));
+
       // Serial.printf("left joystick: %4d, servoAngle: %3d\n", leftJoystickY, servoAngle);
       ////////////////////////////////////////////////////
 
       ///////////// DC Motor Thrust Direction ////////////
-      int rightJoystickX = myGamepad->axisRX();
-      bool leftDirection;
-      bool rightDirection;
-      // Neutral Position;
-      if (abs(rightJoystickX) < 100){
-        leftDirection = 1;
-        rightDirection = 0;
-      }
-      // Left turn, right joystick pushed left (negative)
-      else if (rightJoystickX <= -100){
-        leftDirection = 1;
-        rightDirection = 1;
-      }
-      // Right turn, right joystick pushed right (position)
-      else if (rightJoystickX >= 100){
-        leftDirection = 0;
-        rightDirection = 0;
-      }
+      // int rightJoystickX = myGamepad->axisRX();
+      // bool leftDirection;
+      // bool rightDirection;
+      // // Neutral Position;
+      // if (abs(rightJoystickX) < 100){
+      //   leftDirection = 1;
+      //   rightDirection = 0;
+      // }
+      // // Left turn, right joystick pushed left (negative)
+      // else if (rightJoystickX <= -100){
+      //   leftDirection = 1;
+      //   rightDirection = 1;
+      // }
+      // // Right turn, right joystick pushed right (position)
+      // else if (rightJoystickX >= 100){
+      //   leftDirection = 0;
+      //   rightDirection = 0;
+      // }
       /////////////////////////////////////////////////////
 
       ////////////// Throttle and Reverse control /////////////
@@ -275,5 +272,5 @@ void loop() {
   // https://stackoverflow.com/questions/66278271/task-watchdog-got-triggered-the-tasks-did-not-reset-the-watchdog-in-time
 
   // vTaskDelay(1);
-  delay(150);
+  // delay(150);
 }
