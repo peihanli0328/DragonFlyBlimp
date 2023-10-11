@@ -125,12 +125,17 @@ void motorControl(int throttlePress) {
   //   myMotorR->run(FORWARD);
   // }
   // convert the throttle press (0 - 1023) to actual motor speed (0 - 255)
+  // also prevent the deadzone during the throttle control
+  if (throttlePress < 100){
+    throttlePress = 0;
+  }
   int motorSpeed = map(throttlePress, 0, 1023, 0, 255);
-  Serial.printf("motor:%3d\n",motorSpeed);
+  // Serial.printf("motor:%3d\n",motorSpeed);
+  
   myMotorL->setSpeed(motorSpeed);
   myMotorR->setSpeed(motorSpeed);
-  myMotorL->run(RELEASE);
-  myMotorR->run(RELEASE);
+//   myMotorL->run(RELEASE);
+//   myMotorR->run(RELEASE);
 }
 
 void setThrustDir(bool leftDirection, bool rightDirection){
@@ -168,7 +173,7 @@ void setup() {
   // But might also fix some connection / re-connection issues.
   BP32.forgetBluetoothKeys();
 
-  // motorSetup();
+  motorSetup();
   servoSetup();
 
 }
@@ -179,6 +184,7 @@ void loop() {
   // Just call this function in your main loop.
   // The gamepads pointer (the ones received in the callbacks) gets updated
   // automatically.
+  delay(1);
   BP32.update();
 
   // It is safe to always do this before using the gamepad API.
@@ -224,43 +230,46 @@ void loop() {
       // Serial.printf("left joystick: %4d, servoAngle: %3d\n", leftJoystickY, servoAngle);
       ////////////////////////////////////////////////////
 
-      ///////////// DC Motor Thrust Direction ////////////
-      // int rightJoystickX = myGamepad->axisRX();
-      // bool leftDirection;
-      // bool rightDirection;
-      // // Neutral Position;
-      // if (abs(rightJoystickX) < 100){
-      //   leftDirection = 1;
-      //   rightDirection = 0;
-      // }
-      // // Left turn, right joystick pushed left (negative)
-      // else if (rightJoystickX <= -100){
-      //   leftDirection = 1;
-      //   rightDirection = 1;
-      // }
-      // // Right turn, right joystick pushed right (position)
-      // else if (rightJoystickX >= 100){
-      //   leftDirection = 0;
-      //   rightDirection = 0;
-      // }
+      /////////// DC Motor Thrust Direction ////////////
+      int rightJoystickX = myGamepad->axisRX();
+      bool leftDirection;
+      bool rightDirection;
+      // Neutral Position;
+      if (abs(rightJoystickX) < 100){
+        leftDirection = 0;
+        rightDirection = 1;
+      }
+      // Left turn, right joystick pushed left (negative)
+      else if (rightJoystickX <= -100){
+        leftDirection = 1;
+        rightDirection = 1;
+      }
+      // Right turn, right joystick pushed right (position)
+      else if (rightJoystickX >= 100){
+        leftDirection = 0;
+        rightDirection = 0;
+      }
       /////////////////////////////////////////////////////
 
       ////////////// Throttle and Reverse control /////////////
-      // // Both throttle and brake are pressed
-      // if (myGamepad->throttle() > 10 && myGamepad->brake() > 10){
-      //   Serial.println("Please do not press both triggers!");
-      // } 
-      // else if (myGamepad->throttle() > 10){
-      //   // Throttle --> forward   (0 - 1023)
-      //   setThrustDir(leftDirection, rightDirection);
-      //   motorControl(myGamepad->throttle()); // isForward = 1
-      // }
-      // else if (myGamepad->brake() > 10){
-      //   // Brake --> backward     (0 - 1023)
-      //   // reverse the direction of thrust
-      //   setThrustDir(!leftDirection, !rightDirection);
-      //   motorControl(myGamepad->brake());    // isForward = 0
-      // }
+      // Both throttle and brake are pressed
+      if (myGamepad->throttle() > 50 && myGamepad->brake() > 50){
+        Serial.println("Please do not press both triggers!");
+      } 
+      else if (myGamepad->throttle() > 50){
+        // Throttle --> forward   (0 - 1023)
+        setThrustDir(leftDirection, rightDirection);
+        motorControl(myGamepad->throttle()); // isForward = 1
+      }
+      else if (myGamepad->brake() > 50){
+        // Brake --> backward     (0 - 1023)
+        // reverse the direction of thrust
+        setThrustDir(!leftDirection, !rightDirection);
+        motorControl(myGamepad->brake());    // isForward = 0
+      }
+      else {
+        motorControl(0);
+      }
       /////////////////////////////////////////////////////////
     }
   }

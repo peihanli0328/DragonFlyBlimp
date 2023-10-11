@@ -20,11 +20,11 @@ void setup() {
   // Set the speed to start, from 0 (off) to 255 (max speed)
   myMotor1->setSpeed(50);
   myMotor1->run(FORWARD);
-  myMotor1->run(RELEASE);
+  // myMotor1->run(RELEASE);
 
   myMotor2->setSpeed(50);
   myMotor2->run(FORWARD);
-  myMotor2->run(RELEASE);
+  // myMotor2->run(RELEASE);
 }
 
 void loop() {
@@ -34,12 +34,12 @@ void loop() {
 
   myMotor1->run(FORWARD);
   myMotor2->run(FORWARD);
-  for (i=0; i<255; i++) {
+  for (i=0; i<100; i++) {
     myMotor1->setSpeed(i);
     myMotor2->setSpeed(i);
     delay(10);
   }
-  for (i=255; i!=0; i--) {
+  for (i=100; i!=0; i--) {
     myMotor1->setSpeed(i);
     myMotor2->setSpeed(i);
     delay(10);
@@ -49,19 +49,35 @@ void loop() {
 
   myMotor1->run(BACKWARD);
   myMotor2->run(BACKWARD);
-  for (i=0; i<255; i++) {
+  for (i=0; i<100; i++) {
     myMotor1->setSpeed(i);
     myMotor2->setSpeed(i);
     delay(10);
   }
-  for (i=255; i!=0; i--) {
+  for (i=100; i!=0; i--) {
     myMotor1->setSpeed(i);
     myMotor2->setSpeed(i);
     delay(10);
   }
 
   Serial.print("tech");
-  myMotor1->run(RELEASE);
-  myMotor2->run(RELEASE);
+  // myMotor1->run(RELEASE);
+  // myMotor2->run(RELEASE);
   delay(1000);
+
+
+  // if (Serial.available()) {
+  //   String angleStr = Serial.readStringUntil('\n');  // Read the incoming data until newline character
+  //   int newAngle = angleStr.toInt();  // Convert the string to integer
+  //   Serial.print("Setting servo time to: ");
+  //   servoAngle = newAngle;
+  //   Serial.println(servoAngle);
+  //   }
+  
+
+  // // Update the servo position
+  // // pwm.setPWM(3, 0, servoAngle);
+  // pwm.setPWM(0, 0, map(servoAngle, 0, 180, SERVOMIN, SERVOMAX));
+  // pwm.setPWM(4, 0, map(servoAngle, 180, 0, SERVOMIN, SERVOMAX));
+
 }
