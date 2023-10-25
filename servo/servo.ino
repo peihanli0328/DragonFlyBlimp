@@ -6,8 +6,11 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 // #define SERVOMIN  110
 // #define SERVOMAX  520
 #define SERVOMIN  100
-#define SERVOMAX  450
+#define SERVOMAX  445
+#define SERVOMID  275
 #define SERVO_FREQ 50
+#define SERVO_1   3
+#define SERVO_2   7
 int satrting_servoAngle = ((SERVOMAX-SERVOMIN)/2)+SERVOMIN; 
 int servoAngle;
 void setup() {
@@ -19,8 +22,8 @@ void setup() {
   pwm.setPWMFreq(SERVO_FREQ);
   // pwm.setPWM(0, 0, map(90, 0, 180, SERVOMIN, SERVOMAX));
   // pwm.setPWM(4, 0, map(90, 180, 0, SERVOMIN, SERVOMAX));
-  pwm.setPWM(0, 0,satrting_servoAngle);
-  pwm.setPWM(4, 0,satrting_servoAngle);
+  pwm.setPWM(3, 0,satrting_servoAngle);
+  // pwm.setPWM(7, 0,satrting_servoAngle);
   // delay(100);
   Serial.println("2 channel Servo test!");
 
@@ -38,8 +41,11 @@ void loop() {
 
   // Update the servo position
   // pwm.setPWM(3, 0, servoAngle);
-  pwm.setPWM(0, 0, map(servoAngle, 0, 180, SERVOMIN, SERVOMAX));
-  pwm.setPWM(4, 0, map(servoAngle, 180, 0, SERVOMIN, SERVOMAX));
+  // pwm.setPWM(0, 0, map(servoAngle, 0, 180, SERVOMIN, SERVOMAX));
+  // pwm.setPWM(4, 0, map(servoAngle, 180, 0, SERVOMIN, SERVOMAX));
+
+  pwm.setPWM(SERVO_1, 0, servoAngle);
+  // pwm.setPWM(SERVO_2, 0, servoAngle);
   // delay(10);
   
 }

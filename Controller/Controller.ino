@@ -17,18 +17,22 @@ GamepadPtr myGamepads[BP32_MAX_GAMEPADS];
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 // Motor I2C
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
-Adafruit_DCMotor *myMotorL = AFMS.getMotor(3);
-Adafruit_DCMotor *myMotorR = AFMS.getMotor(4);
+Adafruit_DCMotor *myMotorL = AFMS.getMotor(3);  // left motor
+Adafruit_DCMotor *myMotorR = AFMS.getMotor(4);  // right motor
+Adafruit_DCMotor *myMotorC = AFMS.getMotor(1);  // catcher motor
 
 
 //////// Define const ////////////
 // #define SERVOMIN  150
 // #define SERVOMAX  600
 #define SERVOMIN  100
-#define SERVOMAX  450
+#define SERVOMAX  445
+#define SERVOMID  275
 #define SERVO_FREQ 50
-#define SERVO_1   0
-#define SERVO_2   4
+#define SERVO_1   3
+#define SERVO_2   7
+#define CATCHSPEED 100
+
 
 int satrting_servoAngle = ((SERVOMAX-SERVOMIN)/2)+SERVOMIN; 
 
@@ -61,8 +65,8 @@ void servoSetup(){
   pwm.begin();
   pwm.setOscillatorFrequency(27000000);
   pwm.setPWMFreq(SERVO_FREQ);
-  pwm.setPWM(SERVO_1, 0,satrting_servoAngle);
-  pwm.setPWM(SERVO_2, 0,satrting_servoAngle);
+  pwm.setPWM(SERVO_1, 0, SERVOMID);
+  pwm.setPWM(SERVO_2, 0, SERVOMID);
   Serial.println("Servo setup completed!");
   delay(10);
 }
@@ -231,23 +235,40 @@ void loop() {
       ////////////////////////////////////////////////////
 
       /////////// DC Motor Thrust Direction ////////////
-      int rightJoystickX = myGamepad->axisRX();
+      int rightJoystickX  = myGamepad->axisRX();
+      int turnState = 0;
+      const int turnSpeed = 150;
       bool leftDirection;
       bool rightDirection;
       // Neutral Position;
       if (abs(rightJoystickX) < 100){
         leftDirection = 0;
         rightDirection = 1;
+        turnState = 0;
       }
       // Left turn, right joystick pushed left (negative)
       else if (rightJoystickX <= -100){
         leftDirection = 1;
         rightDirection = 1;
+        turnState = 1;
       }
       // Right turn, right joystick pushed right (position)
       else if (rightJoystickX >= 100){
         leftDirection = 0;
         rightDirection = 0;
+        turnState = 1;
+      }
+
+      switch (turnState){
+        case 0:
+          setThrustDir(leftDirection, rightDirection);
+          motorControl(0);
+          break;
+
+        case 1:
+          setThrustDir(leftDirection, rightDirection);
+          motorControl(turnSpeed);
+          break;
       }
       /////////////////////////////////////////////////////
 
@@ -258,19 +279,55 @@ void loop() {
       } 
       else if (myGamepad->throttle() > 50){
         // Throttle --> forward   (0 - 1023)
-        setThrustDir(leftDirection, rightDirection);
+        setThrustDir(0, 1);
         motorControl(myGamepad->throttle()); // isForward = 1
       }
       else if (myGamepad->brake() > 50){
         // Brake --> backward     (0 - 1023)
         // reverse the direction of thrust
-        setThrustDir(!leftDirection, !rightDirection);
+        setThrustDir(1, 0);
         motorControl(myGamepad->brake());    // isForward = 0
       }
       else {
         motorControl(0);
       }
       /////////////////////////////////////////////////////////
+
+      ///////////// Catching Mechanism //////////////////////
+      static int catchState = 0;
+      
+      // Catch
+      if (myGamepad->r1()){
+        catchState = 1;
+      }
+      // Release
+      if (myGamepad->l1()){
+        catchState = 2;
+      }
+      // Neutral
+      if (myGamepad->a()){
+        catchState = 0;
+      }
+
+      // send command to the motor based on the states
+      switch (catchState){
+        case 0:
+          myMotorC->setSpeed(0);
+          myMotorC->run(FORWARD);
+          break;
+
+        case 1:
+          myMotorC->setSpeed(CATCHSPEED);
+          myMotorC->run(FORWARD);
+          break;
+
+        case 2:
+          myMotorC->setSpeed(CATCHSPEED);
+          myMotorC->run(BACKWARD);
+          break;
+      }
+
+
     }
   }
 
