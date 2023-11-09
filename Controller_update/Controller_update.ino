@@ -33,10 +33,11 @@ int rightJoystickX = 0;
 #define SERVO_1 3
 #define SERVO_2 7
 #define CATCHSPEED 200
-
+#define HOLDSPEED 150
 
 int satrting_servoAngle = ((SERVOMAX - SERVOMIN) / 2) + SERVOMIN;
 int pre_throttlePress = 0;
+long firstPress;
 void motorSetup() {
   Serial.println("Adafruit Motorshield v2 - DC Motor test!");
 
@@ -237,19 +238,23 @@ void loop() {
       // }
 
       int leftJoystickY = myGamepad->axisY();  // range from -511 - 512
+      // Serial.println(leftJoystickY);
+
       // Serial.printf("\n", leftJoystickY);
       int servoAngle;
       // Neutral position (90 deg) when left joystick in middle
-      if (abs(leftJoystickY) < 100) {
+      if (abs(leftJoystickY) < 50) {
         servoAngle = 90;
       }
       // Pointing up (180 deg) when left joystick pushed up (-511 - 0)
-      else if (leftJoystickY <= -100) {
-        servoAngle = 180;
+      else if (leftJoystickY <= -50) {
+        // servoAngle = 180;
+        servoAngle = map(abs(leftJoystickY), 0, 511, 90, 180);
       }
       // Pointing down (0 deg) when left joystick pushed down (0 - 512)
-      else if (leftJoystickY >= 100) {
-        servoAngle = 0;
+      else if (leftJoystickY >= 50) {
+        // servoAngle = 0;
+        servoAngle = map(leftJoystickY, 0, 512, 90, 0);
       }
       pwm.setPWM(SERVO_1, 0, map(servoAngle, 0, 180, SERVOMIN, SERVOMAX));
       pwm.setPWM(SERVO_2, 0, map(servoAngle, 180, 0, SERVOMIN, SERVOMAX));
@@ -264,7 +269,7 @@ void loop() {
         
       // }
 
-      Serial.println(myGamepad->axisRX());
+      // Serial.println(myGamepad->axisRX());
       int turnState = 0;
        int turnSpeed = 0;
       bool leftDirection;
@@ -277,14 +282,14 @@ void loop() {
       }
       // Left turn, right joystick pushed left (negative)
       else if (rightJoystickX <= -30) {
-        leftDirection = 1;
-        rightDirection = 1;
+        leftDirection = 0;
+        rightDirection = 0;
         turnState = 1;
       }
       // Right turn, right joystick pushed right (position)
       else if (rightJoystickX >= 30) {
-        leftDirection = 0;
-        rightDirection = 0;
+        leftDirection = 1;
+        rightDirection = 1;
         turnState = 2;
       }
 
@@ -372,14 +377,16 @@ void loop() {
 
       ///////////// Catching Mechanism //////////////////////
       static int catchState = 0;
-
+      static int pressCount = 0;
       // Catch
       if (myGamepad->r1()) {
         catchState = 1;
+        firstPress = millis();
       }
       // Release
       if (myGamepad->l1()) {
         catchState = 2;
+        firstPress = millis();
       }
       // Neutral
       if (myGamepad->a()) {
@@ -394,13 +401,22 @@ void loop() {
           break;
 
         case 1:
-          myMotorC->setSpeed(CATCHSPEED);
+          if ((millis() - firstPress) < 5000){
+            myMotorC->setSpeed(CATCHSPEED);
+
+          }else{
+            myMotorC->setSpeed(HOLDSPEED);
+          }
+          // myMotorC->setSpeed(CATCHSPEED);
           myMotorC->run(FORWARD);
           break;
 
         case 2:
           myMotorC->setSpeed(CATCHSPEED);
           myMotorC->run(BACKWARD);
+          if ((millis() - firstPress) > 5000){
+            catchState = 0;
+          }
           break;
       }
     }
